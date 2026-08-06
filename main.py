@@ -1,6 +1,7 @@
 import socket
 import sys
 from datetime import datetime
+from modules.banner_grabber import grab_banner, nmap_service_scan
 
 def scan_port(target_ip, port):
     """Ek single port check karta hai ki open hai ya nahi"""
@@ -14,7 +15,7 @@ def scan_port(target_ip, port):
         return False
 
 def scan_common_ports(target_ip):
-    """Top common ports ko scan karta hai"""
+    """Top common ports ko scan karta hai aur banner bhi grab karta hai"""
     common_ports = {
         21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP",
         53: "DNS", 80: "HTTP", 110: "POP3", 143: "IMAP",
@@ -29,8 +30,10 @@ def scan_common_ports(target_ip):
     
     for port, service in common_ports.items():
         if scan_port(target_ip, port):
+            banner = grab_banner(target_ip, port)
             print(f"[+] Port {port} OPEN  --> {service}")
-            open_ports.append((port, service))
+            print(f"    Banner: {banner}")
+            open_ports.append((port, service, banner))
         else:
             print(f"[-] Port {port} closed")
     
@@ -44,3 +47,8 @@ if __name__ == "__main__":
     
     target = sys.argv[1]
     scan_common_ports(target)
+    
+    # Optional detailed Nmap scan
+    run_nmap = input("\nRun detailed Nmap service scan? (y/n): ")
+    if run_nmap.lower() == 'y':
+        nmap_service_scan(target)
